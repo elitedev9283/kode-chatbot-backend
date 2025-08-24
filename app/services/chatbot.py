@@ -158,12 +158,14 @@ class ChatbotService:
         
         return workflow.compile()
     
-    async def create_conversation(self) -> str:
+    async def create_conversation(self, title: Optional[str] = None) -> str:
         """Create a new conversation and return its ID."""
+        print(f"Creating conversation with title: {title}")
         conversation_id = str(uuid.uuid4())
         conversation = ConversationHistory(
             conversation_id=conversation_id,
             messages=[],
+            title=title,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc)
         )
@@ -260,15 +262,14 @@ class ChatbotService:
         # Check if LLM, embeddings, and vector store are initialized
         if not self.llm or not self.embeddings or not self.vector_store or not self.graph:
             raise ValueError("OpenAI client not initialized. Please provide a valid API key.")
-        
         # Create new conversation if none provided
         if not conversation_id:
-            conversation_id = await self.create_conversation()
+            conversation_id = await self.create_conversation(message)
 
         # Get existing conversation or create new one
         conversation = await self.get_conversation(conversation_id)
         if not conversation:
-            conversation_id = await self.create_conversation()
+            conversation_id = await self.create_conversation(message)
             conversation = await self.get_conversation(conversation_id)
 
         # Add user message to conversation
@@ -302,6 +303,10 @@ class ChatbotService:
         ai_message = self._convert_from_langchain_message(ai_response)
 
         # Add AI response to conversation
+        if conversation.title is None:
+            conversation.title = message
+        print(f"Conversation title: {conversation.title}")
+
         conversation.messages.append(ai_message)
         conversation.updated_at = datetime.now(timezone.utc)
 

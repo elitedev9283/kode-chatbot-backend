@@ -123,7 +123,8 @@ class MongoDBService:
                 "conversation_id": 1,
                 "messages": 1,
                 "created_at": 1,
-                "updated_at": 1
+                "updated_at": 1,
+                "title": 1
             }).sort("updated_at", -1)
             
             conversations = []
@@ -139,7 +140,8 @@ class MongoDBService:
                     "message_count": len(doc.get("messages", [])),
                     "created_at": doc["created_at"].isoformat() if doc.get("created_at") else None,
                     "updated_at": doc["updated_at"].isoformat() if doc.get("updated_at") else None,
-                    "last_message": doc["messages"][-1]["content"][:50] + "..." if doc.get("messages") else ""
+                    "last_message": doc["messages"][-1]["content"][:50] + "..." if doc.get("messages") else "",
+                    "title": doc.get("title", "")
                 }
                 conversations.append(conversation_summary)
             

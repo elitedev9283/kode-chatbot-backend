@@ -45,7 +45,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
 
 @router.post("/conversation", status_code=status.HTTP_201_CREATED)
-async def create_conversation() -> Dict[str, str]:
+async def create_conversation(title: Optional[str] = None) -> Dict[str, str]:
     """
     Create a new conversation.
     
@@ -53,7 +53,7 @@ async def create_conversation() -> Dict[str, str]:
         Dictionary containing the new conversation ID
     """
     try:
-        conversation_id = await chatbot_service.create_conversation()
+        conversation_id = await chatbot_service.create_conversation(title)
         return {"conversation_id": conversation_id}
     
     except Exception as e:
@@ -76,7 +76,7 @@ async def get_conversation_history(conversation_id: str) -> Dict[str, Any]:
     """
     try:
         history = await chatbot_service.get_conversation_history(conversation_id)
-        
+        conversation = await chatbot_service.get_conversation(conversation_id)
         if history is None:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
@@ -85,7 +85,8 @@ async def get_conversation_history(conversation_id: str) -> Dict[str, Any]:
         
         return {
             "conversation_id": conversation_id,
-            "messages": history
+            "messages": history,
+            "title": conversation.title
         }
     
     except HTTPException:
@@ -107,6 +108,7 @@ async def list_conversations() -> Dict[str, List[Dict[str, Any]]]:
     """
     try:
         conversations = await chatbot_service.list_conversations()
+        print(f"Conversations: {conversations}")
         return {"conversations": conversations}
     
     except Exception as e:

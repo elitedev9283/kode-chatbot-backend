@@ -36,5 +36,6 @@ class ConversationHistory(BaseModel):
     
     conversation_id: str = Field(..., description="Unique conversation identifier")
     messages: List[ChatMessage] = Field(default_factory=list, description="List of messages")
+    title: Optional[str] = Field(None, description="Conversation title")
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
