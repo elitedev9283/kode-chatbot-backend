@@ -100,18 +100,17 @@ class ChatbotService:
             ```md
             {context}
             ```
-            Build a structured lesson for beginners from the following user message and context:
+            Build a structured lesson for beginners about the following users's topic and above context:
             User message:
             {user_message.content}
 
             --------------------------------
             The Output should be in the following format:
-            <topic>
-            # Summarized topic from user message as a title (h2) 
-            </topic>
-            <lesson>
-            # Generated lesson as HTML format 
-            </lesson>
+            <h4><topic>Summarized topic from user message</topic></h4>
+            <lesson>Generated a lesson as HTML format</lesson>
+            --------------------------------
+            IMPORTANT:
+            - remove <br> tags in output
             """
             messages.append(user_message)
             response = self.llm.invoke(messages)
@@ -209,16 +208,17 @@ class ChatbotService:
         # Retrieve relevant documents from Pinecone using LangChain vector store
         try:
             # Perform similarity search using LangChain Pinecone vector store
-            relevant_docs = self.vector_store.similarity_search(
+            relevant_docs = self.vector_store.similarity_search_with_score(
                 query=message,
                 k=5,  # top 5 most similar documents
-                namespace=settings.pinecone_name_space
+                namespace=settings.pinecone_name_space,
             )
+            relevant_docs = [doc for doc, score in relevant_docs if score > 0.9]
         except Exception as e:
             print(f"Error querying Pinecone: {None}")
             relevant_docs = []
             
-        logger.info(f"Relevant documents: {relevant_docs}")
+        logger.info(f"Relevant documents: {len(relevant_docs)}")
         # If no relevant documents, fallback to web search
         if not relevant_docs:
             web_results = await web_search(message)
@@ -235,16 +235,17 @@ class ChatbotService:
         # Retrieve relevant documents from Pinecone using LangChain vector store
         try:
             # Perform similarity search using LangChain Pinecone vector store
-            relevant_docs = self.vector_store.similarity_search(
+            relevant_docs = self.vector_store.similarity_search_with_score(
                 query=message,
                 k=5,  # top 5 most similar documents
-                namespace=settings.pinecone_name_space
+                namespace=settings.pinecone_name_space,
             )
+            relevant_docs = [doc for doc, score in relevant_docs if score > 0.7]
         except Exception as e:
             print(f"Error querying Pinecone: {None}")
             relevant_docs = []
             
-        logger.info(f"Relevant documents: {relevant_docs}")
+        logger.info(f"Relevant documents: {len(relevant_docs)}")
         # If no relevant documents, fallback to web search
         if not relevant_docs:
             web_results = []# await web_search(message)
